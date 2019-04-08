@@ -1,0 +1,8 @@
+__pycache__/
+.vscode/
+.ipynb_checkpoints/
+archief/
+output/*.*
+test.ipynb
+*.code-workspace
+*.pkl

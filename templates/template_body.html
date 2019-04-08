@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page }}</title>
+    <style>
+    {{ css }}
+    </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega@4"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-lite@2.6.0"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-embed@3"></script>
+</head>
+<body>
+    <div class="top">
+    </div>
+    <div class="container">
+    <h1>{{ title }}</h1>
+    {{ toc }}
+    {{ body }}
+    <hr>
+    <div class="author">
+    {{ author }}
+    </div>
+    </div>
+    <div class="footer">
+        <div class="footer__top">
+        {{ footer }}
+        </div>
+        <div class="footer__bottom">
+        {{ logo }}
+        </div>
+    </div>
+</body>
+</html>
