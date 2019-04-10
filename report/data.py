@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(0, '../odbc/')
-
 from pathlib import Path
 import datetime as dt
 import pandas as pd
@@ -8,7 +5,6 @@ import src.query as qry
 
 
 name_procesdef = 'procesdefinitie_BA1920_MATCHING_PRD.xlsx'
-name_forms = 's_ooa_dos'
 
 # templates
 TEMPLATE_PATH = Path('templates')
@@ -65,7 +61,7 @@ def load_forms(file, matching_dates, programmes):
         programmes = [programmes]
 
     # forms
-    df_forms = qry.load_frame(name_forms)
+    df_forms = qry.load_frame(file)
     df_forms['ANTWOORD'] = df_forms['SYSTEEM_ANTWOORD_CODE']\
         .fillna(df_forms['GESLOTEN_ANTWOORD_CODE'])\
         .fillna(df_forms['OPEN_ANTWOORD_STUDENT'])

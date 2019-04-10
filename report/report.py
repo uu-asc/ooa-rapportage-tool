@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(0, '../pandas-glit/')
-
 import locale
 locale.setlocale(locale.LC_NUMERIC, '')
 
