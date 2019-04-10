@@ -41,6 +41,11 @@ def run(file, programmes, matching_dates, lang='nl'):
         }
     width = 600
 
+    if not isinstance(matching_dates, list):
+        matching_dates = [matching_dates]
+    if not isinstance(programmes, list):
+        programmes = [programmes]
+
     # load data
     df_questions, df_answers, df_codings, df_programmes = data.load_refs(lang)
     df_forms = data.load_forms(file, matching_dates, programmes)
