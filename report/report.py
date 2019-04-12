@@ -149,9 +149,9 @@ def run(file, programmes, matching_dates, lang='nl'):
         ).mark_bar(
             clip=True,
         ).encode(
-            x = alt.X('Percentage', scale=alt.Scale(domain=(0, 1))),
-            y = alt.Y('Vraag', sort=sort, title=lang_axis[lang]),
-            color = alt.Color('Antwoorden'),
+            x = alt.X('Percentage:Q', scale=alt.Scale(domain=(0, 1))),
+            y = alt.Y('Vraag:N', sort=sort, title=lang_axis[lang]),
+            color = alt.Color('Antwoorden:N'),
         )
     title = (
         f"{df_codings.at[ps, 'TEKST']}, "
@@ -326,9 +326,9 @@ def run(file, programmes, matching_dates, lang='nl'):
         ).mark_bar(
             clip=True
         ).encode(
-            x = alt.X('Percentage', scale=alt.Scale(domain=(0, 1))),
-            y = alt.Y('Vraag', sort=sort, title=lang_axis[lang]),
-            color = alt.Color('Antwoorden', sort=list(answers.values())),
+            x = alt.X('Percentage:Q', scale=alt.Scale(domain=(0, 1))),
+            y = alt.Y('Vraag:N', sort=sort, title=lang_axis[lang]),
+            color = alt.Color('Antwoorden:N', sort=list(answers.values())),
             order = alt.Order('order:N')
         ).transform_calculate(
             order = order,
