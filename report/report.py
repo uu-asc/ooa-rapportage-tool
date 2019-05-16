@@ -222,9 +222,11 @@ def run(file, programmes, matching_dates, lang='nl'):
     lang_chap = {'nl': 'Tijdsbesteding', 'en': 'Time use'}
     lang_axis = {'nl': 'Tijd in uren', 'en': 'Time in hours'}
     lang_mean = {'nl': 'Gemiddelde', 'en': 'Mean'}
+    lang_hour = {'nl': 'uren', 'en': 'hours'}
     chapter = Chapter(lang_chap[lang])
     axis_title = lang_axis[lang]
     mean_title = lang_mean[lang]
+    hour = lang_hour[lang]
 
     cols = ['PROCESSTAP', 'ANTWOORD']
     breaks = [0, 5, 10, 15, 20, 25, 30, 100]
@@ -247,7 +249,6 @@ def run(file, programmes, matching_dates, lang='nl'):
         query = "PS == @ps and TYPE == 'Q'"
         codes = df_codings.query(query)
         ps = dict(zip(codes.index, codes['TEKST']))
-
         query = "PROCESSTAP in @ps"
         df_q = df_forms.query(query)[cols]
         if df_q.empty:
@@ -268,7 +269,7 @@ def run(file, programmes, matching_dates, lang='nl'):
                 )
             title = f"{ps[i]}, n={df['Aantal'].sum():n}"
             undertitle = (
-                f"<p>{mean_title}: {df_sum.at[i, 'mean']:n} uren</p>"
+                f"<p>{mean_title}: {df_sum.at[i, 'mean']:n} {hour}</p>"
                 )
             json = chart.to_json()
             spec = Spec(i, json, title, undertitle=undertitle)

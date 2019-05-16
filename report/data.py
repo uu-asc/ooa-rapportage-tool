@@ -1,5 +1,6 @@
 from pathlib import Path
 import datetime as dt
+import numpy as np
 import pandas as pd
 import src.query as qry
 
@@ -62,14 +63,24 @@ def load_forms(file, matching_dates, programmes):
 
     # forms
     df_forms = qry.load_frame(file)
-    df_forms['ANTWOORD'] = df_forms['SYSTEEM_ANTWOORD_CODE']\
-        .fillna(df_forms['GESLOTEN_ANTWOORD_CODE'])\
-        .fillna(df_forms['OPEN_ANTWOORD_STUDENT'])
+    df_forms.columns = [col.upper() for col in df_forms.columns]
+    cols = [
+        'PROCESSTAP',
+        'SYSTEEM_ANTWOORD_CODE',
+        'GESLOTEN_ANTWOORD_CODE',
+        'OPEN_ANTWOORD_STUDENT',
+    ]
+    df_forms = df_forms.astype(
+        dtype={col:'str' for col in cols}
+        ).replace('nan', np.nan)
     cols = [
         'SYSTEEM_ANTWOORD_CODE',
         'GESLOTEN_ANTWOORD_CODE',
         'OPEN_ANTWOORD_STUDENT',
     ]
+    df_forms['ANTWOORD'] = df_forms['SYSTEEM_ANTWOORD_CODE']\
+        .fillna(df_forms['GESLOTEN_ANTWOORD_CODE'])\
+        .fillna(df_forms['OPEN_ANTWOORD_STUDENT'])
     df_forms = df_forms.drop(cols, axis=1)
 
     filt1 = df_forms['PROCESSTAP'].str.contains('O_DATUM_')
@@ -136,7 +147,9 @@ def load_refs(lang):
 
     # programmes
     lang_colname = {'nl': 'NAAM_NL', 'en': 'NAAM_EN'}
-    df_programmes = qry.load_frame('r_opl').set_index('OPLEIDING')
+    df_programmes = qry.load_frame('referentie/r_opl')
+    df_programmes.columns = [col.upper() for col in df_programmes.columns]
+    df_programmes = df_programmes.set_index('OPLEIDING')
     df_programmes['NAAM'] = df_programmes[lang_colname[lang]]
 
     # codings
