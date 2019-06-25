@@ -64,6 +64,7 @@ def load_forms(file, matching_dates, programmes):
     # forms
     df_forms = qry.load_frame(file)
     df_forms.columns = [col.upper() for col in df_forms.columns]
+    df_forms = df_forms.rename(columns={'OOA_ID': 'IO_AANVR_ID'})
     cols = [
         'PROCESSTAP',
         'SYSTEEM_ANTWOORD_CODE',
