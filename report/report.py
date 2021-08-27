@@ -11,14 +11,14 @@ import report.processing as process
 from .body import Spec, Chapter, Body
 
 
-def run(file, programmes, matching_dates, lang='nl'):
+def run(pdef, forms, programmes, matching_dates, lang='nl'):
     """
     Return report of matching form statistics.
 
     Parameters
     ==========
-    :param file: str
-        Name of the .pkl file containing the data from the matching forms.
+    :param forms: df
+        DataFrame containing the data from the matching forms.
     :param programmes: {str, list}
         (List of) programme codes.
     :param matching_dates: {str, list}
@@ -47,15 +47,15 @@ def run(file, programmes, matching_dates, lang='nl'):
         programmes = [programmes]
 
     # load data
-    df_questions, df_answers, df_codings, df_programmes = data.load_refs(lang)
-    df_forms = data.load_forms(file, matching_dates, programmes)
+    df_questions, df_answers, df_codings, df_programmes = data.load_refs(pdef, lang)
+    df_forms = data.load_forms(forms, matching_dates, programmes)
     if df_forms.empty:
         print(f"No results for {', '.join(programmes)}, {matching_dates}")
         return None
 
     reporter = process.Reporter(
         df_forms, df_questions, df_answers, df_codings, lang=lang
-        )
+    )
 
     # introduction
     now, matching_dates, nforms = data.get_properties(df_forms, lang=lang)
@@ -94,7 +94,7 @@ def run(file, programmes, matching_dates, lang='nl'):
 
     page_name_els = [
         programme,
-        '2019',
+        '2021',
         matching_dates.upper(),
         lang_page[lang],
         programme_name,
@@ -360,12 +360,13 @@ def run(file, programmes, matching_dates, lang='nl'):
 
     for io_code, answer in zip(io_codes, answers):
         filt1 = df_questions.index.str.contains('O_STEL')
-        filt2 = df_questions['SYSTEEMLIJST IO'] == io_code
+        filt2 = df_questions['SYSTEEMLIJST_IO'] == io_code
+        filt4 = ~df_questions.index.str.contains('TOE')
         if len(programmes) == 1:
             filt3 = df_questions[programmes[0]].notnull()
         else:
             filt3 = df_questions[programmes].notnull().any(axis=1)
-        ps = list(df_questions.loc[filt1 & filt2 & filt3].index)
+        ps = list(df_questions.loc[filt1 & filt2 & filt3 & filt4].index)
 
         query = "PS == @answer and TYPE == 'A'"
         codes = df_codings.query(query)

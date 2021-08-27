@@ -2,10 +2,14 @@ from pathlib import Path
 import datetime as dt
 import numpy as np
 import pandas as pd
-import src.query as qry
+
+import sys
+sys.path.insert(0, '../../../osiris_query')
+from query.result import QueryResult
 
 
-name_procesdef = 'procesdefinitie_BA1920_MATCHING_PRD.xlsx'
+# name_procesdef = 'procesdefinitie_BA1920_MATCHING_PRD.xlsx'
+name_procesdef = 'ooa.ba2122.matching.pdef.xlsx'
 
 # templates
 TEMPLATE_PATH = Path('templates')
@@ -22,25 +26,21 @@ faculties = {
     'BETA': [
         'BIOL', 'INCA', 'WSKT', 'SCHK', 'WISK',
         'INKU', 'NAST',
-        ],
-    'GEO': [
-        'INMB', 'SGPB', 'AARD',
-        ],
+    ],
+    'GEO': ['INMB', 'SGPB', 'AARD'],
     'GW': [
         'ISAB', 'WBGB', 'LITB', 'TCSB', 'HISB',
         'CIWB', 'ENGB', 'THEB', 'GESB', 'LASB',
         'FRAB', 'KUNB', 'TLWB', 'SPAB', 'DUIB',
         'NEDB', 'MUZB', 'KELB', 'ITAB', 'THEO',
-        ],
+    ],
     'ECBB': ['ECBB'],
     'RGLB': ['RGLB'],
-    'SW': [
-        'ASWB', 'PEDB', 'SOCB', 'OWKB', 'CULB'
-        ],
-    }
+    'SW': ['ASWB', 'PEDB', 'SOCB', 'OWKB', 'CULB'],
+}
 
 
-def load_forms(file, matching_dates, programmes):
+def load_forms(df, matching_dates, programmes):
     """
     Return forms relevant to specified matching dates and programmes.
 
@@ -61,17 +61,15 @@ def load_forms(file, matching_dates, programmes):
     if not isinstance(programmes, list):
         programmes = [programmes]
 
-    # forms
-    df_forms = qry.load_frame(file)
-    df_forms.columns = [col.upper() for col in df_forms.columns]
-    df_forms = df_forms.rename(columns={'OOA_ID': 'IO_AANVR_ID'})
+    df.columns = [col.upper() for col in df.columns]
+    df = df.rename(columns={'OOA_ID': 'IO_AANVR_ID'})
     cols = [
         'PROCESSTAP',
         'SYSTEEM_ANTWOORD_CODE',
         'GESLOTEN_ANTWOORD_CODE',
         'OPEN_ANTWOORD_STUDENT',
     ]
-    df_forms = df_forms.astype(
+    df = df.astype(
         dtype={col:'str' for col in cols}
         ).replace('nan', np.nan)
     cols = [
@@ -79,87 +77,101 @@ def load_forms(file, matching_dates, programmes):
         'GESLOTEN_ANTWOORD_CODE',
         'OPEN_ANTWOORD_STUDENT',
     ]
-    df_forms['ANTWOORD'] = df_forms['SYSTEEM_ANTWOORD_CODE']\
-        .fillna(df_forms['GESLOTEN_ANTWOORD_CODE'])\
-        .fillna(df_forms['OPEN_ANTWOORD_STUDENT'])
-    df_forms = df_forms.drop(cols, axis=1)
+    df['ANTWOORD'] = df['SYSTEEM_ANTWOORD_CODE']\
+        .fillna(df['GESLOTEN_ANTWOORD_CODE'])\
+        .fillna(df['OPEN_ANTWOORD_STUDENT'])
+    df = df.drop(cols, axis=1)
 
-    filt1 = df_forms['PROCESSTAP'].str.contains('O_DATUM_')
-    filt2 = df_forms['ANTWOORD'].isin(matching_dates)
-    forms = list(df_forms.loc[filt1 & filt2]['IO_AANVR_ID'].unique())
+    filt1 = df['PROCESSTAP'].str.contains('O_DATUM_')
+    filt2 = df['ANTWOORD'].isin(matching_dates)
+    forms = list(df.loc[filt1 & filt2]['IO_AANVR_ID'].unique())
 
-    filt1 = df_forms['IO_AANVR_ID'].isin(forms)
-    filt2 = df_forms['OPLEIDING'].isin(programmes)
+    filt1 = df['IO_AANVR_ID'].isin(forms)
+    filt2 = df['OPLEIDING'].isin(programmes)
 
-    return df_forms.loc[filt1 & filt2]
+    df = df.loc[filt1 & filt2]
+    return df
 
 
-def load_refs(lang):
+# def load_ps(file, lang):
+#     file = Path(file)
+#     lang_colname = {'nl': 'tekst_nl', 'en': 'tekst_en'}
+#     df = pd.read_excel(file, index_col=0, sheet_name='ps')
+#     df = df.query("actor == 'S'").set_index('processtap')
+#     df['TEKST'] = df[lang_colname[lang]]
+#     return df
+
+
+def load_ps(file, lang):
+    file = Path(file)
+    lang_colname = {'nl': 'tekst_nl', 'en': 'tekst_en'}
+    df = pd.read_excel(
+        file,
+        index_col=0,
+        header=3,
+        skiprows=[4],
+        sheet_name='opl'
+    ).rename(columns={
+        ' .1': 'actor',
+        ' .2': 'hoofdstuk',
+        ' .3': 'hs_nr',
+        ' .4': 'processtap',
+        ' .5': 'ps_nr',
+        ' .6': 'tekst_nl',
+        ' .7': 'tekst_en',
+        ' .8': 'SYSTEEMLIJST_IO',
+        'opleiding': 'actueel',
+        'Unnamed: 50': 'aantal',
+    })
+    df = df.query("actor == 'S'").set_index('processtap')
+    df['TEKST'] = df[lang_colname[lang]]
+    return df
+
+
+def load_antw(file, lang):
+    lang_colname = {'nl': 'antwoord_nl', 'en': 'antwoord_en'}
+    df = pd.read_excel(file, sheet_name='antw')
+    cols = [
+        'hoofdstuk',
+        'processtap',
+        'volgnummer',
+        'antwoord_code',
+        'antwoord_nl',
+        'antwoord_en',
+    ]
+    df = df.query("actor == 'S'")[cols
+    ].set_index(['processtap', 'antwoord_code'])
+    df['ANTWOORD'] = df[lang_colname[lang]]
+    return df
+
+
+def load_prog(lang):
+    lang_colname = {'nl': 'NAAM_NL', 'en': 'NAAM_EN'}
+    df = QueryResult.read_pickle('referentie/ref_OST_OPLEIDING').frame
+    df.columns = [col.upper() for col in df.columns]
+    df = df.set_index('OPLEIDING')
+    df['NAAM'] = df[lang_colname[lang]]
+    return df
+
+
+def load_codings(lang):
+    lang_colname = {'nl': 'NL', 'en': 'EN'}
+    file = Path('codings.xlsx')
+    df = pd.read_excel(file).set_index('CODE')
+    df['TEKST'] = df[lang_colname[lang]]
+    return df
+
+
+def load_refs(file, lang):
     """
     Return reference DataFrames set to specified language.
     """
-
-    file = Path(name_procesdef)
-
-    # questions
-    lang_colname = {'nl': 'TEKST', 'en': 'TEKST EN'}
-    df_questions = pd.read_excel(
-        file,
-        sheet_name='processtappen',
-        skiprows=[0, 1, 3],
-    )
-    cols = ['ACTOR', 'HS#']
-    df_questions.loc[:, cols] = df_questions.loc[:, cols].fillna(method='ffill')
-    cols = [
-        'CHILD AANTAL H',
-        'CHILD AANTAL V',
-        'CHILD STRING',
-        'PARENT AANTAL H',
-        'PARENT AANTAL V',
-        'PARENT STRING',
-        'IPRO ID',
-        'PARENT IPRO ID',
-        ]
-    df_questions = df_questions.query("ACTOR == 'S'")\
-        .drop(cols, axis=1)\
-        .set_index('PROCESSTAP')
-    df_questions['TEKST'] = df_questions[lang_colname[lang]]
-
-    # answers
-    lang_colname = {'nl': 'ANTWOORD', 'en': 'ANTWOORD EN'}
-    df_answers = pd.read_excel(
-        file,
-        sheet_name='antwoorden',
-        skiprows=[1],
-    )
-    cols = ['ACTOR', 'HS#', 'PS#']
-    df_answers.loc[:, cols] = df_answers.loc[:, cols].fillna(method='ffill')
-    cols = [
-        'HOOFDSTUK',
-        'PROCESSTAP',
-        'AW#',
-        'ANTWOORD CODE',
-        'ANTWOORD',
-        'ANTWOORD EN'
-        ]
-    df_answers = df_answers.query("ACTOR == 'S'")[cols]\
-        .set_index(['PROCESSTAP', 'ANTWOORD CODE'])
-    df_answers['ANTWOORD'] = df_answers[lang_colname[lang]]
-
-    # programmes
-    lang_colname = {'nl': 'NAAM_NL', 'en': 'NAAM_EN'}
-    df_programmes = qry.load_frame('referentie/r_opl')
-    df_programmes.columns = [col.upper() for col in df_programmes.columns]
-    df_programmes = df_programmes.set_index('OPLEIDING')
-    df_programmes['NAAM'] = df_programmes[lang_colname[lang]]
-
-    # codings
-    lang_colname = {'nl': 'NL', 'en': 'EN'}
-    file = Path('codings.xlsx')
-    df_codings = pd.read_excel(file).set_index('CODE')
-    df_codings['TEKST'] = df_codings[lang_colname[lang]]
-
-    return df_questions, df_answers, df_codings, df_programmes
+    file = Path(file)
+    ps = load_ps(file, lang)
+    antw = load_antw(file, lang)
+    prog = load_prog(lang)
+    codings = load_codings(lang)
+    return ps, antw, codings, prog
 
 
 def get_properties(df_forms, lang='nl'):
