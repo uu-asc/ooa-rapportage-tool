@@ -1,0 +1,126 @@
+{% if taal == 'nl' %}
+    {% set toc = 'Inhoudsopgave' %}
+    {% set intro = 'Inleiding' %}
+{% else %}
+    {% set toc = 'Table of contents' %}
+    {% set intro = 'Introduction' %}
+{% endif %}
+{% macro render_section(section) -%}
+    <section id="{{ gen_id(section.titel) }}">
+        <details class="chapter" open>
+            <summary class="chapter--title"><h2>{{ section.titel }}</h2></summary>
+            {% for item in section.items_ %}
+            <details class="item" open>
+                <summary class="item--title"><h3>{{ item.titel }}</h3></summary>
+            {% if item.type == 'chart' %}
+                <div data-uuid="{{ item.uuid }}"></div>
+            {% elif item.type == 'table' %}
+                {{ item.output }}
+            </details>
+            {% endif %}
+            {% endfor %}
+        </details>
+    </section>
+{%- endmacro %}
+{% macro gen_id(titel) -%}
+    {{ titel|lower|replace(' ', '-') }}
+{%- endmacro %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matching | Statistieken</title>
+    <style>
+{% include 'stylesheet.css' %}
+    </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega@5"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-lite@4.17.0"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-embed@6"></script>
+</head>
+<body>
+    <header>
+{% if taal == 'nl' %}
+        <h1>Statistieken matchingsformulier {{ opleiding }}</h1>
+{% if werkgroep is not none -%}
+        <h2>werkgroep {{ werkgroep }}</h2>
+{%- endif %}
+{% else %}
+        <h1>Statistics matching form {{ opleiding }}</h1>
+{% if werkgroep is not none -%}
+        <h2>Group {{ werkgroep }}</h2>
+{%- endif %}
+{% endif %}
+    </header>
+    <main>
+        <nav>
+            <details class="chapter" open>
+                <summary class="chapter--title"><h2>{{ toc }}</h2></summary>
+                <div>
+                    <ol>
+                        <li><a href="#{{ gen_id(intro) }}">{{ intro }}</a></li>
+{% for section in sections.values() %}
+                        <li><a href="#{{ gen_id(section.titel) }}">{{ section.titel }}</a></li>
+{% endfor %}
+                    </ol>
+                </div>
+            </details>
+        </nav>
+        <section id="{{ gen_id(intro) }}">
+            <details class="chapter" open>
+                <summary class="chapter--title"><h2>{{ intro }}</h2></summary>
+                <div>
+                    <p>
+{% if taal == 'nl' %}
+                        Deze rapportage bevat een overzicht van de ingevulde matchingsformulieren voor <em>{{ opleiding }}</em> voor collegejaar {{ collegejaar}}. Hover over de grafieken voor tooltips met detailinformatie. Grafieken zijn te exporteren naar .png en .svg via de ronde knop aan de rechterzijde van de grafiek.
+{% else %}
+                        This report contains an overview of the filled out matching forms for <em>{{ opleiding }}</em> for the {{ collegejaar}} academic year. Hover with your mouse over the graphs for tooltips with detailed information. Graphs are exportable to .png and .svg via the round button on the right side of the graph.
+{% endif %}
+                    </p>
+{% if taal == 'nl' %}
+                    <table>
+                        <tr><th>datum</th><td>{{ datum }}</td></tr>
+                        <tr><th>matchingsronde</th><td>{{ matchingsdata }}</td></tr>
+{% if werkgroep is not none -%}
+                        <tr><th>werkgroep</th><td>{{ werkgroep }}</td></tr>
+{%- endif %}
+                        <tr><th>aantal formulieren</th><td>{{ nformulier }}</td></tr>
+                    </table>
+{% else %}
+                    <table>
+                        <tr><th>date</th><td>{{ datum }}</td></tr>
+                        <tr><th>matching round</th><td>{{ matchingsdata }}</td></tr>
+{% if werkgroep is not none -%}
+                        <tr><th>group</th><td>{{ werkgroep }}</td></tr>
+{%- endif %}
+                        <tr><th>number of forms</th><td>{{ nformulier }}</td></tr>
+                    </table>
+{% endif %}
+                </div>
+            </details>
+        </section>
+{% for section in sections.values() %}
+    {{ render_section(section) }}
+{% endfor %}
+    </main>
+    <footer>
+        <div>{% include 'snippet_footer_nl.html' %}</div>
+        <div>
+            <img src="https://github.com/uu-csa/naslagwerk-matching/blob/master/docs/images/UU_logo_2021_NL_WIT.png?raw=true" alt="Universiteit Utrecht" width="320px">
+        </div>
+    </footer>
+<script type="text/javascript">
+    const specs = {
+        {% for uuid, spec in specs.items() %}"{{ uuid }}": {{ spec }},{% endfor %}
+    }
+    document.querySelectorAll("[data-uuid]").forEach(
+        el => {
+            vegaEmbed(el, specs[el.dataset.uuid])
+                .then(result => console.log(result))
+                .catch(console.warn)
+        }
+    )
+</script>
+</body>
+</html>

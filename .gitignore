@@ -5,6 +5,8 @@ archief/
 testing/
 output/*
 !output/.gitkeep
+data/*
+!data/.gitkeep
 test.ipynb
 *.code-workspace
 *.pkl

@@ -1,0 +1,135 @@
+@import "https://unpkg.com/open-props";
+
+:root {
+    --brand-blue: #001240;
+    --brand-yellow: #FFCD00;
+    --brand-red: #C00A35;
+    --surface-1: var(--gray-2);
+    --surface-2: var(--gray-9);
+    --text-1: var(--gray-0);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+}
+
+html {
+    background-color: var(--surface-1);
+}
+
+body {
+    max-width: 900px;
+    margin-inline: auto;
+    font-family: var(--font-sans);
+    line-height: var(--font-lineheight-4);
+    box-shadow:  1px 2px 16px rgba(0, 0, 0, 0.2);
+}
+
+body > * {
+    background-color: white;
+}
+header {
+    box-shadow: inset 0 8px var(--brand-red);
+    border-top: solid var(--size-8) var(--brand-yellow);
+    padding-inline: var(--size-8);
+    padding-block: var(--size-6);
+}
+header * {
+    padding-inline: var(--size-4);
+}
+main {
+    display: flex;
+    flex-direction: column;
+    padding-inline: var(--size-8);
+    padding-bottom: var(--size-6);
+    gap: var(--size-5);
+}
+footer > div {
+    color: var(--text-1);
+    padding: var(--size-8);
+    background-color: rgb(38, 38, 38);
+}
+footer > div:last-child {
+    padding: 0;
+    background-color: rgb(28, 28, 28);
+}
+
+.chapter--title {
+    background-color: var(--brand-blue);
+    color: var(--text-1);
+}
+.chapter > * {
+    padding-inline: var(--size-5);
+}
+.chapter > *:not(.item, summary) {
+    padding-block: var(--size-5);
+}
+.chapter > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-5);
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    padding-right: 0;
+}
+.item:not(:first-of-type) {
+    border-top: 3px solid var(--surface-2);
+}
+.item > :last-child {
+    margin-block: var(--size-3);
+}
+.item--title {
+    padding-right: var(--size-4);
+    font-size: var(--font-size-0);
+}
+
+summary:where(.chapter--title, .item--title) {
+    width: 100%;
+    padding: 0.5rem 0;
+    position: relative;
+    cursor: pointer;
+    list-style: none;
+}
+summary:where(.chapter--title, .item--title):after {
+    content: "+";
+    position: absolute;
+    font-size: 1.75em;
+    line-height: 0;
+    margin-top: 0.75rem;
+    right: 0;
+    top: 25%;
+    font-weight: 200;
+    transform-origin: center;
+    transition: 100ms linear;
+}
+details[open] > summary:where(.chapter--title, .item--title):after {
+    transform: rotate(45deg);
+    font-size: 2em;
+}
+
+table {
+    width: 50%;
+    border: none;
+    border-collapse: collapse;
+}
+th {
+    text-align: left;
+}
+th, td {
+    padding: var(--size-1);
+    border: none;
+}
+.dataframe thead {
+    color: var(--text-1);
+    background-color: var(--brand-blue);
+}
+.dataframe :where(th, td) {
+    text-align: right;
+    border-bottom: 1px solid var(--surface-2);
+}
